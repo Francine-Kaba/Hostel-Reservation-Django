@@ -1,6 +1,7 @@
-from django.urls import path
+from django.urls import path, include
+from Authentication.views import AddStudent
 
 urlpatterns = [
-path('',)
+    path('signup/', AddStudent.as_view(), name="add-student"),
 
 ]

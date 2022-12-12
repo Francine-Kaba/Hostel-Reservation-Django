@@ -1,10 +1,35 @@
 from django.db import models
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _  
 
 # Create your models here.
-class User(models.Model):
-    username = models.CharField(
-        max_length=300,
+class Faculty(models.Model):
+    name = models.CharField(
+        "Name of faculty", 
+        max_length=300, 
+        blank=True, 
+        null=True
+    )
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = "Faculties"
+
+
+class Program(models.Model):
+    name = models.CharField(
+        "Name of program", 
+        max_length=300, 
+        blank=True, 
+        null=True
+    )
+    def __str__(self):
+        return self.name
+
+class Student(models.Model):
+    student_id = models.CharField(
+        max_length=13,
+        unique=True,
         blank=False
     )
     first_name = models.CharField(
@@ -19,17 +44,23 @@ class User(models.Model):
     )
     email = models.EmailField(
         _('email address'),
-        unique=True
+        unique=True, 
+        blank=False
     )
     phone_number = models.IntegerField(
         _('phone number'),
-        max_length=10,
+        #max_length=10,
         unique=True,
-        blank=True
-    )
-    username = models.CharField(
-        _('username'),
         blank=False
     )
+    faculty = models.ForeignKey(
+       on_delete=models.CASCADE,
+       to="faculty",
+       verbose_name = "Faculties"
+    )
+    program = models.ForeignKey(
+       on_delete=models.CASCADE,
+       to="program"
+    )
     def __str__(self):
-        return self.name
+        return self.student_id
