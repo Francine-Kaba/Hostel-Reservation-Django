@@ -52,6 +52,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+
 ROOT_URLCONF = '_hostelReservation.urls'
 
 TEMPLATES = [
@@ -71,7 +72,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = '_hostelReservation.wsgi.application'
-
+AUTH_USER_MODEL = 'Authentication.User'
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
@@ -129,6 +130,7 @@ REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
+        #'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
+        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
     ]
 }

@@ -1,9 +1,10 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _  
-
+from django.contrib.auth.base_user import AbstractBaseUser
+from .managers import UserManager
 # Create your models here.
 
-class UserRoles(models.Model):     # Model for user role, ie. admin or student 
+class UserRole(models.Model):     # Model for user role, ie. admin or student 
     name = models.CharField(
         'Name',
         max_length=30,
@@ -12,9 +13,43 @@ class UserRoles(models.Model):     # Model for user role, ie. admin or student
     )
     def __str__(self):
         return self.name
-class Admin(models.Model):        # Model for admin
+
+class Position(models.Model):       # Model for position
+    name = models.CharField(
+        "Name of position", 
+        max_length=300, 
+        default='Student'
+    )
+    def __str__(self):
+        return self.name
+
+class Faculty(models.Model):        # Model for faculty
+    name = models.CharField(
+        "Name of faculty", 
+        max_length=300, 
+        blank=False, 
+        null=False
+    )
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = "Faculties"
+
+class Program(models.Model):       # Model for program
+    name = models.CharField(
+        "Name of program", 
+        max_length=300, 
+        blank=False, 
+        null=False
+    )
+    def __str__(self):
+        return self.name
+        
+class User(AbstractBaseUser):        # Model for admin
     first_name = models.CharField(
         _('first name'),
+        max_length=50,
         blank=False,
         null=False
     )
@@ -30,74 +65,51 @@ class Admin(models.Model):        # Model for admin
         blank=False,
         null=False
     )
-    position = models.CharField(
-        _('position'),
-        max_length=50,
-        blank=False,
-        null=False
+    position = models.ForeignKey(
+        Position,
+        on_delete=models.CASCADE,
+        default=1
     )
-    role= models.ForeignKey(
-        UserRoles,
-        on_delete=models.CASCADE
+    role = models.ForeignKey(
+        UserRole,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+    phone_number = models.IntegerField(
+        _('phone_number'),
+        blank=True,
+        null=True
+    )
+    is_admin = models.BooleanField(
+        _('is_admin'),
+         default=False
+    )
+    is_superuser = models.BooleanField(
+        _('is_superuser'),
+         default=False
+    )
+    is_staff = models.BooleanField(
+        _('is_staff'),
+         default=False
     )
     def __str__(self):
         return self.email
 
-class Faculty(models.Model):        # Model for faculty
-    name = models.CharField(
-        "Name of faculty", 
-        max_length=300, 
-        blank=False, 
-        null=False
-    )
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name_plural = "Faculties"
-
-
-class Program(models.Model):       # Model for program
-    name = models.CharField(
-        "Name of program", 
-        max_length=300, 
-        blank=False, 
-        null=False
-    )
-    def __str__(self):
-        return self.name
+    objects = UserManager()
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
 
 class Student(models.Model):    # Model for adding a new student
     student_id = models.CharField(
         max_length=13,
-        unique=False,
-        blank=False,
-        null=False
-    )
-    first_name = models.CharField(
-        _('first name'),
-        max_length=50,
-        blank=False,
-        null=False
-    )
-    last_name = models.CharField(
-        _('last name'),
-        max_length=50,
-        blank=False,
-        null=False
-    )
-    email = models.EmailField(
-        _('email address'),
-        unique=True, 
-        blank=False,
-        null=False
-    )
-    phone_number = models.IntegerField(
-        _('phone number'),
-        #max_length=10,
         unique=True,
         blank=False,
         null=False
+    )
+    user = models.ForeignKey(
+       on_delete=models.CASCADE,
+       to="User"
     )
     faculty = models.ForeignKey(
        on_delete=models.CASCADE,
@@ -108,9 +120,7 @@ class Student(models.Model):    # Model for adding a new student
        on_delete=models.CASCADE,
        to="program"
     )
-    role = models.ForeignKey(
-        UserRoles,
-        on_delete=models.CASCADE
-    )
     def __str__(self):
         return self.student_id
+
+   
