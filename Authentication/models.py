@@ -68,7 +68,8 @@ class User(AbstractBaseUser):        # Model for admin
     position = models.ForeignKey(
         Position,
         on_delete=models.CASCADE,
-        default=1
+        blank=True,
+        null=True,
     )
     role = models.ForeignKey(
         UserRole,
