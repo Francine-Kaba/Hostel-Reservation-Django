@@ -199,3 +199,11 @@ class Login (APIView):
         except User.DoesNotExist:
             raise WrongCredentials('Invalid credentials, Wrong user!')
 
+"""
+The GetUserRole class displays all the user roles in the system
+"""
+class GetUserRole(APIView):
+    def get(self, request, *args, **kwargs):
+        data = UserRole.objects.filter().values("id","name")
+        
+        return JsonResponse({'message': 'Success', 'data':list(data)})
