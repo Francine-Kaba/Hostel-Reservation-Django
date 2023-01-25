@@ -2,27 +2,11 @@ from django.db import models
 
 # Create your models here.
 
-class Room(models.Model):
+class Hostel(models.Model):
     name = models.CharField(
         max_length=50,
         blank=True,
         null=True
-    )
-    def __str__(self):
-        return self.name
-
-class Floor(models.Model):
-    name = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True
-    )
-    room = models.ForeignKey(
-        Room,
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True,
-        related_name="room_on_floor"
     )
     def __str__(self):
         return self.name
@@ -33,18 +17,17 @@ class Block(models.Model):
         blank=True,
         null=True
     )
-    floor = models.ForeignKey(
-        Floor,
+    hostel = models.ForeignKey(
+        Hostel,
         on_delete=models.CASCADE,
         blank=True,
         null=True,
-        related_name="floor_on_block"
-    ) 
+        related_name="hostel_in_school"
+    )
     def __str__(self):
         return self.name
 
-
-class Hostel(models.Model):
+class Floor(models.Model):
     name = models.CharField(
         max_length=50,
         blank=True,
@@ -55,8 +38,26 @@ class Hostel(models.Model):
         on_delete=models.CASCADE,
         blank=True,
         null=True,
-        related_name="block_on_hostel"
+        related_name="block_in_hostel"
+    ) 
+    def __str__(self):
+        return self.name
+
+
+class Room(models.Model):
+    name = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True
     )
+    floor = models.ForeignKey(
+        Floor,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name="floor_in_block"
+    )
+    objects = models.Manager()
     def __str__(self):
         return self.name
 

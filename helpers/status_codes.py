@@ -41,3 +41,21 @@ class WrongToken(APIException):
 class InvalidUser(APIException):
     status_codes = 441
     default_detail = 'Invalid user, Not authorised'
+
+class UnavailableRoom(APIException):
+    status_codes = 442
+    default_detail = 'Unavailable, Room does not exist'
+
+class UnavailableFloor(APIException):
+    status_codes = 443
+    default_detail = 'Unavailable, Floor does not exist'
+
+class UnavailableBlock(APIException):
+    status_codes = 444
+    default_detail = 'Unavailable, Block does not exist'
+
+class UnavailableHostel(APIException):
+    status_codes = 445
+    default_detail = 'Unavailable, Hostel does not exist'
+
+    
