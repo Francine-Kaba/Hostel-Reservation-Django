@@ -9,5 +9,5 @@ urlpatterns = [
     path('add-program/', AddProgram.as_view(), name='add_program'),
     path('signup/', AddStudent.as_view(), name='add_student'), 
     path('login/', Login.as_view(), name="Login"), 
-    path('get-user-role/', GetUserRole.as_view(), name="get-user-role")
+    path('get-user-role/', GetUserRole.as_view(), name="get-user-role")  
 ]
