@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from Authentication.models import Student, UserRole, Faculty, Program, User, Position, Student
 from rest_framework.exceptions import AuthenticationFailed
+from helpers.status_codes import InvalidPassword, InvalidUser, UserAlreadyExist, WrongCredentials
 from helpers.utils import validate_password
 from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
@@ -22,10 +23,10 @@ class AddUserRoles(APIView):
                 UserRole.objects.create(name=name)
                 data = UserRole.objects.filter().values('id', 'name')
                 return JsonResponse({'message': 'User role added succesfully!', 'data': list(data)})
-            except:
+            except Exception:
                 return JsonResponse({'message': 'Cannot add user role'})
         else:
-            raise AuthenticationFailed ('Invalid user, Not authorised')
+            raise InvalidUser ('Invalid user, Not authorised')
 
 """
 The AddPosition class creates and adds a new position into the database
@@ -36,14 +37,15 @@ class AddPosition(APIView):
     def post(self, request, *args, **kwargs):
         if self.request.user.role_id == 1:
             try:
-                name = request.data.get('name')
+                name = request.data.get('name') 
                 Position.objects.create(name=name)
-                data = UserRole.objects.filter().values('id', 'name')
+                data = Position.objects.filter(name=name).values('id', 'name')
                 return JsonResponse({'message': 'Position added succesfully!', 'data': list(data)})
-            except:
+            except Exception as e:
+                print(e)
                 return JsonResponse({'message': 'Cannot add user role'})
         else:
-            raise AuthenticationFailed ('Invalid user, Not authorised')
+            raise InvalidUser ('Invalid user, Not authorised')
 
 
 """
@@ -101,7 +103,7 @@ class AddFaculty(APIView):
                 return JsonResponse({'message': 'Faculty added succesfully!', 'data': list(data)})
             else:
                 return AuthenticationFailed('Cannot add faculty, Not authorised')
-        except:
+        except Exception:
             return JsonResponse({'message': 'Invalid user, Not an admin'})
 """
 The AddProgram class creates and adds a new program into the database
@@ -118,7 +120,7 @@ class AddProgram(APIView):
                 return JsonResponse({'message': 'Program added succesfully!', 'data': list(data)})
             else:
                 return AuthenticationFailed('Cannot add program, Not authorised')
-        except:
+        except Exception:
             return JsonResponse({'message': 'Invalid user, Not an admin'})
 """
 The AddStudent class creates and adds a new student into the database
@@ -137,7 +139,7 @@ class AddStudent(APIView):
 
         try: 
             Student.objects.get(student_id=student_id)
-            raise AuthenticationFailed("User already exists")
+            raise UserAlreadyExist("User already exists")
 
         except Student.DoesNotExist:
 
@@ -166,8 +168,8 @@ class AddStudent(APIView):
                         Student.objects.create(**student_details)
                         return JsonResponse({'message': 'Student created sucessfully'})
                     except UserRole.DoesNotExist:
-                        return JsonResponse({'message': 'Role id is incorrect'})
-            except BaseException as e:
+                        return JsonResponse({'message': 'Role id is incorrect', 'data': role_id})
+            except Exception as e:
                 print(e)
                 return JsonResponse({'message': 'Invalid credentials, Unable to add student'})
 
@@ -178,22 +180,30 @@ class Login (APIView):
     def post(self, request, *args, **kwargs):
         email = request.data.get('email')
         password =  request.data.get('password')
-        details = {
-            'email' : email,
-            'password' : make_password(password),
-        }   
+        # details = {
+        #     'email' : email,
+        #     'password' : make_password(password),
+        # }   
         try:
             user = User.objects.get(email=email)
             if (user.check_password(password)):
                 refresh = RefreshToken.for_user(user)
-                new_user = User.objects.filter(email=email).values('id', 'email')
+                new_user = User.objects.filter(email=email).values()
                 data ={
                     "refresh": str(refresh),
                     "access": str(refresh.access_token)
                 }
                 return JsonResponse({'message': 'Login succesfull', 'data': data, 'user': new_user[0]})
             else:
-                raise AuthenticationFailed('Invalid password')
+                raise InvalidPassword('Invalid password')
         except User.DoesNotExist:
-            raise AuthenticationFailed('Invalid credentials, Wrong user!')
+            raise WrongCredentials('Invalid credentials, Wrong user!')
 
+"""
+The GetUserRole class displays all the user roles in the system
+"""
+class GetUserRole(APIView):
+    def get(self, request, *args, **kwargs):
+        data = UserRole.objects.filter().values("id","name")
+        
+        return JsonResponse({'message': 'Success', 'data':list(data)})
