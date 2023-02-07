@@ -117,12 +117,6 @@ class StudentTesting(APITestCase):
         self.assertEqual(message, 'Admin added succesfully')
     
     def test_student(self):
-        payload = self.user_data
-        # response = self.client.post(
-        #     path=reverse('signup'), 
-        #     data=payload,  
-        # )
-        print(json.loads(self.student.content))
         message = json.loads(self.student.content)['message']
         self.assertEqual(self.student.status_code, 200)
         self.assertEqual(message, 'Student created sucessfully')
