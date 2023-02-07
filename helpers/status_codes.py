@@ -57,5 +57,3 @@ class UnavailableBlock(APIException):
 class UnavailableHostel(APIException):
     status_codes = 445
     default_detail = 'Unavailable, Hostel does not exist'
-
-    
