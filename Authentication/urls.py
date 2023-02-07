@@ -7,7 +7,7 @@ urlpatterns = [
     path('add-faculty/', AddFaculty.as_view(), name='add_faculty'),
     path('add-position/', AddPosition.as_view(), name='add_position'),
     path('add-program/', AddProgram.as_view(), name='add_program'),
-    path('signup/', AddStudent.as_view(), name='add_student'), 
+    path('signup/', AddStudent.as_view(), name='signup'), 
     path('login/', Login.as_view(), name="Login"), 
     path('get-user-role/', GetUserRole.as_view(), name="get-user-role")
 ]

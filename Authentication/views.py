@@ -180,15 +180,15 @@ class Login (APIView):
     def post(self, request, *args, **kwargs):
         email = request.data.get('email')
         password =  request.data.get('password')
-        details = {
-            'email' : email,
-            'password' : make_password(password),
-        }   
+        # details = {
+        #     'email' : email,
+        #     'password' : make_password(password),
+        # }   
         try:
             user = User.objects.get(email=email)
             if (user.check_password(password)):
                 refresh = RefreshToken.for_user(user)
-                new_user = User.objects.filter(email=email).values(**details)
+                new_user = User.objects.filter(email=email).values()
                 data ={
                     "refresh": str(refresh),
                     "access": str(refresh.access_token)
