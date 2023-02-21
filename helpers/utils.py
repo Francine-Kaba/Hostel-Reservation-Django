@@ -34,3 +34,18 @@ def validate_password(password):
         return response         
 
     return response
+
+"""
+Email validation regex
+"""
+def validate_email(email):
+    response = {"status": True, "message": ""}
+
+    email_pattern = "^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$"
+
+    if re.match(email_pattern, email) is None:
+        response["message"] = "Email is not valid"
+        response["status"] = False
+        return response
+    
+    return response

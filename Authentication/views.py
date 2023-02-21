@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from Authentication.models import Student, UserRole, Faculty, Program, User, Position, Student
 from rest_framework.exceptions import AuthenticationFailed
 from helpers.status_codes import InvalidPassword, InvalidUser, UserAlreadyExist, WrongCredentials
-from helpers.utils import validate_password
+from helpers.utils import validate_password, validate_email
 from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -153,7 +153,12 @@ class AddStudent(APIView):
                     'role_id': role_id,
                 }  
                 check_password = validate_password(password) # this code validates the password
-                if check_password["status"]:
+                check_email = validate_email(password) # this code validates the email
+                if check_email["status"]:
+                    return JsonResponse({'message' : check_email["message"]}, status=433)
+                elif check_password["status"] == False:
+                    return JsonResponse({'message' : check_password["message"]}, status=433)
+                else:
                     try:
                         UserRole.objects.get(id=role_id)
                         user = User.objects.create(**details)
@@ -179,11 +184,7 @@ The Login class allows both student and admins to login to the system
 class Login (APIView):
     def post(self, request, *args, **kwargs):
         email = request.data.get('email')
-        password =  request.data.get('password')
-        # details = {
-        #     'email' : email,
-        #     'password' : make_password(password),
-        # }   
+        password =  request.data.get('password')   
         try:
             user = User.objects.get(email=email)
             if (user.check_password(password)):
