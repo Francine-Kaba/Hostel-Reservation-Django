@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Student, Faculty, Program, UserRole
+from django.contrib.auth.admin import UserAdmin
+from .models import Student, Faculty, Program, UserRole, User
 
 # Register your models here.
 admin.site.register(UserRole)

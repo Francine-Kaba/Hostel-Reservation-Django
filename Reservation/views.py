@@ -206,6 +206,8 @@ class HostelClass(APIView):
     def post(self, request, *args, **kwargs):             # this function adds a new hostel into a system
         # if self.request.user.role_id == 1 or self.request.user.role_id ==2:
             name = request.data.get('name')
+            hostel_image = request.data.get('hostel_image')
+            contact = request.data.get('contact')
             hostel_type = request.data.get('hostel_type')
             try:
                 Hostel.objects.get(name=name)
@@ -213,10 +215,12 @@ class HostelClass(APIView):
             except Hostel.DoesNotExist:
                  details = {
                 'name' : name,
+                'hostel_image' : hostel_image,
+                'contact' : contact,
                 'hostel_type' : hostel_type
             }
             hostel =Hostel.objects.create(**details)
-            data = Hostel.objects.filter(id=hostel.id).values('id', 'name', 'hostel_type')
+            data = Hostel.objects.filter(id=hostel.id).values()
             return JsonResponse({'message' : 'Hostel added succesfully', 'data': list(data)})
         # else:
         #     raise InvalidUser('Invalid user, Not authorised')  
@@ -225,6 +229,7 @@ class HostelClass(APIView):
         # if self.request.user.role_id == 1 or self.request.user.role_id == 2:
             hostel_id = request.data.get('hostel_id')
             name = request.data.get('name')
+            hostel_image = request.data.get('hostel_image')
             hostel_type = request.data.get('hostel_type')
             block = request.data.get('block')
             try:
@@ -232,6 +237,7 @@ class HostelClass(APIView):
             except Hostel.DoesNotExist:
                 raise UnavailableHostel
             hostel.name = name
+            hostel.hostel_image = hostel_image
             hostel.hostel_type = hostel_type
             hostel.block = block
             hostel.save()
@@ -252,6 +258,9 @@ class HostelClass(APIView):
             return JsonResponse({'message' : 'Sorry, Unable to delete Hostel'})
 
     def get(self, request, *args, **kwargs):                 # this function gets all hostels in the system
+        page = request.GET.get('page')
         data = Hostel.objects.values()
+        items = [data[i::5] for i in range(5)]
+        print(data)
         count = data.count()
-        return JsonResponse({"message": "success","data":list(data), "count": count})
+        return JsonResponse({"message": "success","data":items[int(page)], "count": count})

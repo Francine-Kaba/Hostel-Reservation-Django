@@ -77,8 +77,9 @@ class User(AbstractBaseUser):        # Model for admin
         null=True,
         on_delete=models.CASCADE,
     )
-    phone_number = models.IntegerField(
+    phone_number = models.CharField(
         _('phone_number'),
+        max_length=20,
         blank=True,
         null=True
     )
@@ -99,7 +100,7 @@ class User(AbstractBaseUser):        # Model for admin
 
     objects = UserManager()
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+
 
 class Student(models.Model):    # Model for adding a new student
     student_id = models.CharField(

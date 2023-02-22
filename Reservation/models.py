@@ -17,6 +17,18 @@ class Hostel(models.Model):
         null=False,
         default="Campus Hostel"
     )
+    contact = models.CharField(
+        _('contact'),
+        max_length=20,
+        blank=True,
+        null=True
+    )
+    hostel_image = models.ImageField(
+        _('hostel image'),
+        max_length=50,
+        blank=False,
+        null=False
+    )
     def __str__(self):
         return self.name
 
