@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from Authentication.models import Student, UserRole, Faculty, Program, User, Position, Student
 from rest_framework.exceptions import AuthenticationFailed
 from helpers.status_codes import InvalidPassword, InvalidUser, UserAlreadyExist, WrongCredentials
-from helpers.utils import validate_password, validate_email
+from helpers.utils import validate_user_input
 from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -77,8 +77,12 @@ class AddAdmin(APIView):
                         'role': role,
                         'password' : make_password(password)
                     }
-                    check_password = validate_password(password)   #password validation
-                    if check_password["status"]:
+                    
+                    validation_response = validate_user_input(email, first_name, last_name, password)
+                    if validation_response is not None:
+                        return validation_response
+                    else:
+
                         User.objects.create(**details)
                         data = User.objects.filter(email=email).values('id', 'email')
                         return JsonResponse({'message': 'Admin added succesfully', 'data': list(data)})
@@ -152,12 +156,9 @@ class AddStudent(APIView):
                     'phone_number' : phone_number,
                     'role_id': role_id,
                 }  
-                check_password = validate_password(password) # this code validates the password
-                check_email = validate_email(password) # this code validates the email
-                if check_email["status"]:
-                    return JsonResponse({'message' : check_email["message"]}, status=433)
-                elif check_password["status"] == False:
-                    return JsonResponse({'message' : check_password["message"]}, status=433)
+                validation_response = validate_user_input(email, first_name, last_name, password)
+                if validation_response is not None:
+                    return validation_response
                 else:
                     try:
                         UserRole.objects.get(id=role_id)
@@ -184,21 +185,26 @@ The Login class allows both student and admins to login to the system
 class Login (APIView):
     def post(self, request, *args, **kwargs):
         email = request.data.get('email')
-        password =  request.data.get('password')   
-        try:
-            user = User.objects.get(email=email)
-            if (user.check_password(password)):
-                refresh = RefreshToken.for_user(user)
-                new_user = User.objects.filter(email=email).values()
-                data ={
-                    "refresh": str(refresh),
-                    "access": str(refresh.access_token)
-                }
-                return JsonResponse({'message': 'Login succesfull', 'data': data, 'user': new_user[0]})
-            else:
-                raise InvalidPassword('Invalid password')
-        except User.DoesNotExist:
-            raise WrongCredentials('Invalid credentials, Wrong user!')
+        password =  request.data.get('password')  
+
+        validation_response = validate_user_input(email, password)
+        if validation_response is not None:
+            return validation_response
+        else: 
+            try:
+                user = User.objects.get(email=email)
+                if (user.check_password(password)):
+                    refresh = RefreshToken.for_user(user)
+                    new_user = User.objects.filter(email=email).values()
+                    data ={
+                        "refresh": str(refresh),
+                        "access": str(refresh.access_token)
+                    }
+                    return JsonResponse({'message': 'Login succesfull', 'data': data, 'user': new_user[0]})
+                else:
+                    raise InvalidPassword('Invalid password')
+            except User.DoesNotExist:
+                raise WrongCredentials('Invalid credentials, Wrong user!')
 
 """
 The GetUserRole class displays all the user roles in the system

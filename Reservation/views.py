@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from Reservation.models import Room, Hostel, Floor, Block
-from helpers.status_codes import UnavailableRoom, UnavailableFloor, UnavailableBlock, UnavailableHostel, NotAllowed
+from helpers.status_codes import UnavailableRoom, UnavailableFloor, UnavailableBlock, UnavailableHostel, NotAllowed, InvalidUser
 
 # Create your views here.
 
@@ -11,10 +11,10 @@ from helpers.status_codes import UnavailableRoom, UnavailableFloor, UnavailableB
 The Room class add a new room to a floor, into a block in a hostel into the database
 """
 class RoomClass(APIView):
-    # authentication_classes = (IsAuthenticated,)
-    # permission_classes = (JWTAuthentication,)
+    authentication_classes = (IsAuthenticated,)
+    permission_classes = (JWTAuthentication,)
     def post(self, request, *args, **kwargs):             # this function adds a new room to a floor
-        # if self.request.user.role_id == 1 or self.request.user.role_id ==2:
+        if self.request.user.role_id == 1 or self.request.user.role_id ==2:
             name = request.data.get('name')
             number_of_persons = request.data.get('number_of_persons')
             is_available = request.data.get('is_available')
@@ -39,10 +39,10 @@ class RoomClass(APIView):
             data = Room.objects.filter(id=room.id).values()
             return JsonResponse({'message' : 'Room added succesfully', 'data': list(data)})
 
-        # else:
-        #     raise InvalidUser('Invalid user, Not authorised')
+        else:
+            raise InvalidUser
     def patch(self, request, *args, **kwargs):    # The patch function update all details of the room in the database
-        # if self.request.user.role_id == 1 or self.request.user.role_id == 2:
+        if self.request.user.role_id == 1 or self.request.user.role_id == 2:
             room_id = request.data.get('room_id')
             number_of_persons = request.data.get('number_of_persons')
             is_available = request.data.get('is_available')
@@ -58,8 +58,8 @@ class RoomClass(APIView):
             room.floor_id = floor
             room.save()
             return JsonResponse({"message": "Room details changed sucessfully"})
-        # else:
-        #     raise NotAllowed
+        else:
+            raise NotAllowed
 
     def delete(self, request, *args, **kwargs):           # The Delete function deletes a new room from the database
         room_id = request.data.get('room_id')
@@ -83,31 +83,31 @@ class RoomClass(APIView):
 The Floor class add a new floor into a block, in a hostel into the database
 """
 class FloorClass(APIView):                      
-    # authentication_classes = (IsAuthenticated,)
-    # permission_classes = (JWTAuthentication,)
+    authentication_classes = (IsAuthenticated,)
+    permission_classes = (JWTAuthentication,)
     def post(self, request, *args, **kwargs):                       # this function adds a new floor to a block
-        # if self.request.user.role_id == 1 or self.request.user.role_id ==2:
-        name = request.data.get('name')
-        gender = request.data.get('gender')
-        block_id = request.data.get('block_id')
-        try:
-            Block.objects.get(id=block_id)
-        except Block.DoesNotExist:
-            raise UnavailableBlock('Unavailable, Block does not exist')
-        details = {
-            'name' : name,
-            'gender' : gender,
-            'block_id' : block_id
-        }
-        floor = Floor.objects.create(**details)
-        data = Floor.objects.filter(id=floor.id).values('id', 'name', 'gender', 'block_id')
-        return JsonResponse({'message' : 'Floor added succesfully', 'data': list(data)})
-      
-        # else:
-        #     raise InvalidUser('Invalid user, Not authorised')
+        if self.request.user.role_id == 1 or self.request.user.role_id ==2:
+            name = request.data.get('name')
+            gender = request.data.get('gender')
+            block_id = request.data.get('block_id')
+            try:
+                Block.objects.get(id=block_id)
+            except Block.DoesNotExist:
+                raise UnavailableBlock('Unavailable, Block does not exist')
+            details = {
+                'name' : name,
+                'gender' : gender,
+                'block_id' : block_id
+            }
+            floor = Floor.objects.create(**details)
+            data = Floor.objects.filter(id=floor.id).values('id', 'name', 'gender', 'block_id')
+            return JsonResponse({'message' : 'Floor added succesfully', 'data': list(data)})
+        
+        else:
+            raise InvalidUser
 
     def patch(self, request, *args, **kwargs):    # The patch function update all details of the floor in the database
-        # if self.request.user.role_id == 1 or self.request.user.role_id == 2:
+        if self.request.user.role_id == 1 or self.request.user.role_id == 2:
             floor_id = request.data.get('floor_id')
             name = request.data.get('name')
             gender = request.data.get('gender')
@@ -121,8 +121,8 @@ class FloorClass(APIView):
             floor.block = block
             floor.save()
             return JsonResponse({"message": "Floor details changed sucessfully"})
-        # else:
-        #     raise NotAllowed
+        else:
+            raise NotAllowed
     
     def delete(self, request, *args, **kwargs):           # The Delete function deletes a new floor from the database
         floor_id = request.data.get('floor_id')
@@ -145,10 +145,10 @@ class FloorClass(APIView):
 The Block class add a new block into a hostel in the database
 """
 class BlockClass(APIView):
-    # authentication_classes = (IsAuthenticated,)
-    # permission_classes = (JWTAuthentication,)
+    authentication_classes = (IsAuthenticated,)
+    permission_classes = (JWTAuthentication,)
     def post(self, request, *args, **kwargs):                            # this function adds a new block to a hostel
-        # if self.request.user.role_id == 1 or self.request.user.role_id ==2:
+        if self.request.user.role_id == 1 or self.request.user.role_id ==2:
             name = request.data.get('name')
             hostel_id = request.data.get('hostel_id')
             try:
@@ -162,11 +162,11 @@ class BlockClass(APIView):
             block = Block.objects.create(**details)
             data = Block.objects.filter(id=block.id).values('id', 'name', 'hostel_id')
             return JsonResponse({'message' : 'Block added succesfully', 'data': list(data)})
-        # else:
-        #     raise InvalidUser('Invalid user, Not authorised')
+        else:
+            raise InvalidUser('Invalid user, Not authorised')
         
     def patch(self, request, *args, **kwargs):    # The patch function update all details of the floor in the database
-        # if self.request.user.role_id == 1 or self.request.user.role_id == 2:
+        if self.request.user.role_id == 1 or self.request.user.role_id == 2:
             block_id = request.data.get('block_id')
             name = request.data.get('name')
             hostel = request.data.get('hostel')
@@ -178,8 +178,8 @@ class BlockClass(APIView):
             block.hostel = hostel
             block.save()
             return JsonResponse({"message": "Block details changed sucessfully"})
-        # else:
-        #     raise NotAllowed
+        else:
+            raise NotAllowed
 
     def delete(self, request, *args, **kwargs):          # The Delete function deletes a new block from the hostel in the database
         block_id = request.data.get('block_id')
@@ -201,10 +201,10 @@ class BlockClass(APIView):
 The Hostel class add a new hostel into the database
 """
 class HostelClass(APIView):
-    # authentication_classes = (IsAuthenticated,)
-    # permission_classes = (JWTAuthentication,)
+    authentication_classes = (IsAuthenticated,)
+    permission_classes = (JWTAuthentication,)
     def post(self, request, *args, **kwargs):             # this function adds a new hostel into a system
-        # if self.request.user.role_id == 1 or self.request.user.role_id ==2:
+        if self.request.user.role_id == 1 or self.request.user.role_id ==2:
             name = request.data.get('name')
             hostel_image = request.data.get('hostel_image')
             contact = request.data.get('contact')
@@ -222,11 +222,11 @@ class HostelClass(APIView):
             hostel =Hostel.objects.create(**details)
             data = Hostel.objects.filter(id=hostel.id).values()
             return JsonResponse({'message' : 'Hostel added succesfully', 'data': list(data)})
-        # else:
-        #     raise InvalidUser('Invalid user, Not authorised')  
+        else:
+            raise InvalidUser('Invalid user, Not authorised')  
 
     def patch(self, request, *args, **kwargs):    # The patch function update all details of the hostel in the database
-        # if self.request.user.role_id == 1 or self.request.user.role_id == 2:
+        if self.request.user.role_id == 1 or self.request.user.role_id == 2:
             hostel_id = request.data.get('hostel_id')
             name = request.data.get('name')
             hostel_image = request.data.get('hostel_image')
@@ -242,8 +242,8 @@ class HostelClass(APIView):
             hostel.block = block
             hostel.save()
             return JsonResponse({"message": "Hostel details changed sucessfully"})
-        # else:
-        #     raise NotAllowed
+        else:
+            raise NotAllowed
     
     def delete(self, request, *args, **kwargs):         # The DeleteHostel class deletes a new room from the database
         hostel_id = request.data.get('hostel_id')
