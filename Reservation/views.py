@@ -12,9 +12,9 @@ from helpers.status_codes import UnavailableRoom, UnavailableFloor, UnavailableB
 The Room class add a new room to a floor, into a block in a hostel into the database
 """
 class RoomClass(APIView):
-    authentication_classes = (IsAuthenticated,)
-    permission_classes = (JWTAuthentication,)
-    def post(self, request, *args, **kwargs):             # this function adds a new room to a floor
+    authentication_classes = (JWTAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    def post(self, request, *args, **kwargs):             # this function adds a new room to a floor in the hostel
         if self.request.user.role_id == 1 or self.request.user.role_id ==2:
             name = request.data.get('name')
             number_of_persons = request.data.get('number_of_persons')
@@ -74,7 +74,7 @@ class RoomClass(APIView):
         else:
             return JsonResponse({'message' : 'Sorry, Unable to delete Room'})
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):             # The get function gets all the details of a specific room
         room_id = request.data.get("room_id")
         try:
             Room.objects.get(id=room_id)
@@ -142,7 +142,7 @@ class FloorClass(APIView):
         else:
             return JsonResponse({'message' : 'Sorry, Unable to delete Floor'})
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):             # The get function gets all details of a specific floor
         floor_id = request.data.get("floor_id")
         try:
             Floor.objects.get(id=floor_id)
@@ -203,7 +203,7 @@ class BlockClass(APIView):
         else:
             return JsonResponse({'message' : 'Sorry, Unable to delete Block'})
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):                 #The get function gets all details of a specific block 
         block_id = request.data.get("block_id")
         try:
             Block.objects.get(id=block_id)
@@ -272,7 +272,7 @@ class HostelClass(APIView):
         else:
             return JsonResponse({'message' : 'Sorry, Unable to delete Hostel'})
         
-    def get(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):                     # The get function gets all details of a specific hostel
         hostel_id = request.data.get("hostel_id")
         try:
             Hostel.objects.get(id=hostel_id)
