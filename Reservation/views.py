@@ -12,10 +12,10 @@ from helpers.status_codes import UnavailableRoom, UnavailableFloor, UnavailableB
 The Room class add a new room to a floor, into a block in a hostel into the database
 """
 class RoomClass(APIView):
-    # authentication_classes = (IsAuthenticated,)
-    # permission_classes = (JWTAuthentication,)
+    authentication_classes = (IsAuthenticated,)
+    permission_classes = (JWTAuthentication,)
     def post(self, request, *args, **kwargs):             # this function adds a new room to a floor
-        # if self.request.user.role_id == 1 or self.request.user.role_id ==2:
+        if self.request.user.role_id == 1 or self.request.user.role_id ==2:
             name = request.data.get('name')
             number_of_persons = request.data.get('number_of_persons')
             is_available = request.data.get('is_available')
@@ -40,8 +40,8 @@ class RoomClass(APIView):
             data = Room.objects.filter(id=room.id).values()
             return JsonResponse({'message' : 'Room added successfully', 'data': list(data)})
 
-        # else:
-        #     raise InvalidUser
+        else:
+            raise InvalidUser
     def patch(self, request, *args, **kwargs):    # The patch function update all details of the room in the database
         if self.request.user.role_id == 1 or self.request.user.role_id == 2:
             room_id = request.data.get('room_id')
