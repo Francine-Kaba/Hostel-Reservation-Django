@@ -18,8 +18,8 @@ class AddUserRoles(APIView):
     authentication_classes = (JWTAuthentication,)
     permission_classes = (IsAuthenticated,)
     def post(self, request, *args, **kwargs):
-        if self.request.user.role_id == 1:
-            try:
+        if self.request.user.role_id == 1:    # this if statement makes sure only a super admin can add new user roles
+            try:                              # this try catches any errors that may occur when saving a new user role into the database
                 name = request.data.get('name')
                 UserRole.objects.create(name=name)
                 data = UserRole.objects.filter().values('id', 'name')
@@ -36,8 +36,8 @@ class AddPosition(APIView):
     authentication_classes = (JWTAuthentication,)
     permission_classes = (IsAuthenticated,)
     def post(self, request, *args, **kwargs):
-        if self.request.user.role_id == 1:
-            try:
+        if self.request.user.role_id == 1:             # this if statement makes sure only a super admin can add new user roles
+            try:                              # this try catches any errors that may occur when saving a new user role into the database
                 name = request.data.get('name') 
                 Position.objects.create(name=name)
                 data = Position.objects.filter(name=name).values('id', 'name')
@@ -56,35 +56,37 @@ class AddAdmin(APIView):
     authentication_classes = (JWTAuthentication,)
     permission_classes = (IsAuthenticated,)
     def post(self, request, *args, **kwargs):
-        if self.request.user.role_id == 1:
-            first_name = request.data.get('first_name')
+        if self.request.user.role_id == 1:          # this if statement makes sure only a super admin can add new user roles
+            first_name = request.data.get('first_name')            # the codes here takes the data from the frontend
             last_name = request.data.get('last_name')
             email = request.data.get('email')
             password = request.data.get('password')
+            phone_number = request.data.get('phone_number')
             position = request.data.get('position')
             role_id = request.data.get('role_id')
-            try:
+            try:                                                # this try and catch ensures that a user is not added twice
                 User.objects.get(email=email)
                 return JsonResponse({"message": "User already exists"})
             except User.DoesNotExist:
-                try:
+                try:                                       # this try and catch ensures that the role and position are already in the database 
                     role = UserRole.objects.get(id=role_id)
                     position = Position.objects.create(name=position)
                     details = {
                         'first_name' : first_name,
                         'last_name' : last_name,
                         'email' : email,
+                        'phone_number': phone_number,
                         'position': position,
                         'role': role,
                         'password' : make_password(password)
                     }
                     
-                    validation_response = validate_user_input(email, first_name, last_name, password)
+                    validation_response = validate_user_input(email, first_name, last_name, password)       # this validates user input
                     if validation_response is not None:
                         return validation_response
                     else:
 
-                        User.objects.create(**details)
+                        User.objects.create(**details)              # this creates an admin based on the details from above
                         data = User.objects.filter(email=email).values('id', 'email')
                         return JsonResponse({'message': 'Admin added successfully', 'data': list(data)})
                 except Exception as e:
@@ -101,7 +103,7 @@ class AddFaculty(APIView):
     permission_classes = (IsAuthenticated,)
     def post(self, request, *args, **kwargs):
         try:
-            if self.request.user.role_id == 1 or self.request.user.role_id == 2:
+            if self.request.user.role_id == 1 or self.request.user.role_id == 2:          # this if ensure only and admin or a super admin can add a faculty
                 name = request.data.get('name')
                 Faculty.objects.create(name=name)
                 data = Faculty.objects.filter().values('id', 'name')
@@ -118,7 +120,7 @@ class AddProgram(APIView):
     permission_classes = (IsAuthenticated,)
     def post(self, request, *args, **kwargs):
         try:
-            if self.request.user.role_id == 1 or self.request.user.role_id == 2:
+            if self.request.user.role_id == 1 or self.request.user.role_id == 2:       # this if ensure only and admin or a super admin can add a program
                 name = request.data.get('name')
                 Program.objects.create(name=name)
                 data = Program.objects.filter().values('id', 'name')
@@ -144,44 +146,48 @@ class AddStudent(APIView):
         program = request.data.get('program')
 
         try: 
-            Student.objects.get(student_id=student_id)
+            Student.objects.get(student_id=student_id)           # this try and catch ensures that a student is not added twice
             raise StudentAlreadyExists
 
         except Student.DoesNotExist:
-           
-            try:
-                details = {
-                    'first_name' : first_name,
-                    'last_name' : last_name,
-                    'email' : email,
-                    'password' : make_password(password),
-                    'phone_number' : phone_number,
-                    'gender' : gender,
-                    'role_id': role_id,
-                }  
-                validation_response = validate_user_input(email, first_name, last_name, password)
-                if validation_response is not None:
-                    return validation_response
-                else:
+            try: 
+                User.objects.get(email=email, phone_number=phone_number)           # this try and catch ensures that a student email does not already exist
+                raise UserAlreadyExist
+            except User.DoesNotExist:
+
                     try:
-                        UserRole.objects.get(id=role_id)
-                        user = User.objects.create(**details)
-                        faculty = Faculty.objects.create(name=faculty)
-                        program = Program.objects.create(name=program)
-                        student_details = {
-                            'student_id' : student_id,
-                            'user' : user,
-                            'faculty' : faculty,
-                            'program' : program,
+                        details = {                   # this try saves these details in the user model
+                            'first_name' : first_name,
+                            'last_name' : last_name,
+                            'email' : email,
+                            'password' : make_password(password),
+                            'phone_number' : phone_number,
+                            'gender' : gender,
+                            'role_id': role_id,
                         }  
-                        Student.objects.create(**student_details)
-                        data = User.objects.filter().values()
-                        return JsonResponse({'message': 'Student created successfully', 'data':list(data)})
-                    except UserRole.DoesNotExist:
-                        return JsonResponse({'message': 'Role id is incorrect', 'data': role_id})
-            except Exception as e:
-                print(e)
-                return JsonResponse({'message': 'Invalid credentials, Unable to add student'})
+                        validation_response = validate_user_input(email, first_name, last_name, password)        # this validates user input
+                        if validation_response is not None:
+                            return validation_response
+                        else:
+                            try:                   # this try saves these details in the student model
+                                UserRole.objects.get(id=role_id)
+                                user = User.objects.create(**details)               # user details are saved here
+                                faculty = Faculty.objects.create(name=faculty)
+                                program = Program.objects.create(name=program)
+                                student_details = {
+                                    'student_id' : student_id,
+                                    'user' : user,
+                                    'faculty' : faculty,
+                                    'program' : program,
+                                }  
+                                Student.objects.create(**student_details)           # student details are saved here
+                                data = User.objects.filter().values()
+                                return JsonResponse({'message': 'Student created successfully', 'data':list(data)})
+                            except UserRole.DoesNotExist:
+                                return JsonResponse({'message': 'Role id is incorrect', 'data': role_id})
+                    except Exception as e:
+                        print(e)
+                        return JsonResponse({'message': 'Invalid credentials, Unable to add student'})
 
 """
 The Login class allows both student and admins to login to the system
@@ -191,16 +197,16 @@ class Login (APIView):
         email = request.data.get('email')
         password =  request.data.get('password')  
 
-        validation_response = validate_login_user_input(email, password)
+        validation_response = validate_login_user_input(email, password)         # this validates user input
         if validation_response is not None:
             return validation_response
         else: 
             try:
                 user = User.objects.get(email=email)
-                if (user.check_password(password)):
+                if (user.check_password(password)):                     # this validates user password
                     refresh = RefreshToken.for_user(user)
                     new_user = Student.objects.filter(user__email=email).values()
-                    data ={
+                    data ={                                         # this gives the user their access and refresh token
                         "refresh": str(refresh),
                         "access": str(refresh.access_token)
                     }
@@ -220,7 +226,7 @@ class GetUserRole(APIView):
         return JsonResponse({'message': 'Success', 'data':list(data)})
     
 """
-The GetAllStudents class displays all the user  in the system
+The GetAllStudents class displays all the students  in the system
 """
 class GetAllStudents(APIView):
     def get(self, request, *args, **kwargs):

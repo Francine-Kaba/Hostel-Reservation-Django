@@ -80,8 +80,9 @@ class User(AbstractBaseUser):        # Model for admin
     phone_number = models.CharField(
         _('phone_number'),
         max_length=20,
-        blank=True,
-        null=True
+        unique=True,
+        blank=False,
+        null=False
     )
     gender = models.CharField(
         _('gender'),
