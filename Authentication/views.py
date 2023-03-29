@@ -2,8 +2,9 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from Authentication.models import Student, UserRole, Faculty, Program, User, Position, Student
 from rest_framework.exceptions import AuthenticationFailed
-from helpers.status_codes import InvalidPassword, InvalidUser, UserAlreadyExist, WrongCredentials
-from helpers.utils import validate_user_input
+from helpers.status_codes import (InvalidPassword, InvalidUser, UserAlreadyExist, WrongCredentials,
+StudentAlreadyExists  )
+from helpers.utils import validate_user_input, validate_login_user_input
 from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -22,11 +23,11 @@ class AddUserRoles(APIView):
                 name = request.data.get('name')
                 UserRole.objects.create(name=name)
                 data = UserRole.objects.filter().values('id', 'name')
-                return JsonResponse({'message': 'User role added succesfully!', 'data': list(data)})
+                return JsonResponse({'message': 'User role added successfully!', 'data': list(data)})
             except Exception:
                 return JsonResponse({'message': 'Cannot add user role'})
         else:
-            raise InvalidUser ('Invalid user, Not authorised')
+            raise InvalidUser ('Invalid user, Not authorized')
 
 """
 The AddPosition class creates and adds a new position into the database
@@ -40,12 +41,12 @@ class AddPosition(APIView):
                 name = request.data.get('name') 
                 Position.objects.create(name=name)
                 data = Position.objects.filter(name=name).values('id', 'name')
-                return JsonResponse({'message': 'Position added succesfully!', 'data': list(data)})
+                return JsonResponse({'message': 'Position added successfully!', 'data': list(data)})
             except Exception as e:
                 print(e)
                 return JsonResponse({'message': 'Cannot add user role'})
         else:
-            raise InvalidUser ('Invalid user, Not authorised')
+            raise InvalidUser ('Invalid user, Not authorized')
 
 
 """
@@ -85,12 +86,12 @@ class AddAdmin(APIView):
 
                         User.objects.create(**details)
                         data = User.objects.filter(email=email).values('id', 'email')
-                        return JsonResponse({'message': 'Admin added succesfully', 'data': list(data)})
+                        return JsonResponse({'message': 'Admin added successfully', 'data': list(data)})
                 except Exception as e:
                     print("error", e)
-                    return JsonResponse({'message': 'Cannot add admin, Not authorised'})
+                    return JsonResponse({'message': 'Cannot add admin, Not authorized'})
         else:
-            return JsonResponse({'message': 'Cannot add admin, Not authorised'})
+            return JsonResponse({'message': 'Cannot add admin, Not authorized'})
 
 """
 The AddFaculty class creates and adds a new faculty into the database
@@ -104,9 +105,9 @@ class AddFaculty(APIView):
                 name = request.data.get('name')
                 Faculty.objects.create(name=name)
                 data = Faculty.objects.filter().values('id', 'name')
-                return JsonResponse({'message': 'Faculty added succesfully!', 'data': list(data)})
+                return JsonResponse({'message': 'Faculty added successfully!', 'data': list(data)})
             else:
-                return AuthenticationFailed('Cannot add faculty, Not authorised')
+                return AuthenticationFailed('Cannot add faculty, Not authorized')
         except Exception:
             return JsonResponse({'message': 'Invalid user, Not an admin'})
 """
@@ -121,9 +122,9 @@ class AddProgram(APIView):
                 name = request.data.get('name')
                 Program.objects.create(name=name)
                 data = Program.objects.filter().values('id', 'name')
-                return JsonResponse({'message': 'Program added succesfully!', 'data': list(data)})
+                return JsonResponse({'message': 'Program added successfully!', 'data': list(data)})
             else:
-                return AuthenticationFailed('Cannot add program, Not authorised')
+                return AuthenticationFailed('Cannot add program, Not authorized')
         except Exception:
             return JsonResponse({'message': 'Invalid user, Not an admin'})
 """
@@ -137,16 +138,17 @@ class AddStudent(APIView):
         email = request.data.get('email')
         password = request.data.get('password')
         phone_number = request.data.get('phone_number')
+        gender = request.data.get('gender')
         role_id = request.data.get('role_id')
         faculty = request.data.get('faculty')
         program = request.data.get('program')
 
         try: 
             Student.objects.get(student_id=student_id)
-            raise UserAlreadyExist("User already exists")
+            raise StudentAlreadyExists
 
         except Student.DoesNotExist:
-
+           
             try:
                 details = {
                     'first_name' : first_name,
@@ -154,6 +156,7 @@ class AddStudent(APIView):
                     'email' : email,
                     'password' : make_password(password),
                     'phone_number' : phone_number,
+                    'gender' : gender,
                     'role_id': role_id,
                 }  
                 validation_response = validate_user_input(email, first_name, last_name, password)
@@ -172,7 +175,8 @@ class AddStudent(APIView):
                             'program' : program,
                         }  
                         Student.objects.create(**student_details)
-                        return JsonResponse({'message': 'Student created sucessfully'})
+                        data = User.objects.filter().values()
+                        return JsonResponse({'message': 'Student created successfully', 'data':list(data)})
                     except UserRole.DoesNotExist:
                         return JsonResponse({'message': 'Role id is incorrect', 'data': role_id})
             except Exception as e:
@@ -187,7 +191,7 @@ class Login (APIView):
         email = request.data.get('email')
         password =  request.data.get('password')  
 
-        validation_response = validate_user_input(email, password)
+        validation_response = validate_login_user_input(email, password)
         if validation_response is not None:
             return validation_response
         else: 
@@ -195,12 +199,12 @@ class Login (APIView):
                 user = User.objects.get(email=email)
                 if (user.check_password(password)):
                     refresh = RefreshToken.for_user(user)
-                    new_user = User.objects.filter(email=email).values()
+                    new_user = Student.objects.filter(user__email=email).values()
                     data ={
                         "refresh": str(refresh),
                         "access": str(refresh.access_token)
                     }
-                    return JsonResponse({'message': 'Login succesfull', 'data': data, 'user': new_user[0]})
+                    return JsonResponse({'message': 'Login successfully', 'data': data, 'user': new_user[0]})
                 else:
                     raise InvalidPassword('Invalid password')
             except User.DoesNotExist:
@@ -212,5 +216,14 @@ The GetUserRole class displays all the user roles in the system
 class GetUserRole(APIView):
     def get(self, request, *args, **kwargs):
         data = UserRole.objects.filter().values("id","name")
+        
+        return JsonResponse({'message': 'Success', 'data':list(data)})
+    
+"""
+The GetAllStudents class displays all the user  in the system
+"""
+class GetAllStudents(APIView):
+    def get(self, request, *args, **kwargs):
+        data = Student.objects.filter().values("id","user", "student_id", "user__first_name", "user__last_name","user__email", "faculty", "program", "user__gender", )
         
         return JsonResponse({'message': 'Success', 'data':list(data)})

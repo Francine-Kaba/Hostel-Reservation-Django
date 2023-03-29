@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 from rest_framework.views import APIView
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from Reservation.models import Room, Hostel, Floor, Block
@@ -11,18 +12,18 @@ from helpers.status_codes import UnavailableRoom, UnavailableFloor, UnavailableB
 The Room class add a new room to a floor, into a block in a hostel into the database
 """
 class RoomClass(APIView):
-    authentication_classes = (IsAuthenticated,)
-    permission_classes = (JWTAuthentication,)
+    # authentication_classes = (IsAuthenticated,)
+    # permission_classes = (JWTAuthentication,)
     def post(self, request, *args, **kwargs):             # this function adds a new room to a floor
-        if self.request.user.role_id == 1 or self.request.user.role_id ==2:
+        # if self.request.user.role_id == 1 or self.request.user.role_id ==2:
             name = request.data.get('name')
             number_of_persons = request.data.get('number_of_persons')
             is_available = request.data.get('is_available')
             price = request.data.get('price')
             floor_id = request.data.get('floor_id')
             try:
-                Room.objects.get(name=name)
-                return JsonResponse({"message" : "Room name already exixts, please change it"})
+                Room.objects.get(name=name,floor_id=floor_id)
+                return JsonResponse({"message" : "Room name already exits, please change it"})
             except Room.DoesNotExist:
                 try:
                  Floor.objects.get(id=floor_id)
@@ -37,10 +38,10 @@ class RoomClass(APIView):
             }
             room = Room.objects.create(**details)
             data = Room.objects.filter(id=room.id).values()
-            return JsonResponse({'message' : 'Room added succesfully', 'data': list(data)})
+            return JsonResponse({'message' : 'Room added successfully', 'data': list(data)})
 
-        else:
-            raise InvalidUser
+        # else:
+        #     raise InvalidUser
     def patch(self, request, *args, **kwargs):    # The patch function update all details of the room in the database
         if self.request.user.role_id == 1 or self.request.user.role_id == 2:
             room_id = request.data.get('room_id')
@@ -57,7 +58,7 @@ class RoomClass(APIView):
             room.price = price
             room.floor_id = floor
             room.save()
-            return JsonResponse({"message": "Room details changed sucessfully"})
+            return JsonResponse({"message": "Room details changed successfully"})
         else:
             raise NotAllowed
 
@@ -69,24 +70,29 @@ class RoomClass(APIView):
             raise UnavailableRoom('Unavailable, Room does not exist')
         if request.method == "DELETE":
             room.delete()
-            return JsonResponse({'message' : 'Room deleted sucessfully'})
+            return JsonResponse({'message' : 'Room deleted successfully'})
         else:
             return JsonResponse({'message' : 'Sorry, Unable to delete Room'})
 
-    def get(self, request, *args, **kwargs):                 # this function gets all rooms in the system
-        data = Room.objects.values()
+    def get(self, request, *args, **kwargs):
+        room_id = request.data.get("room_id")
+        try:
+            Room.objects.get(id=room_id)
+        except Room.DoesNotExist:
+            raise UnavailableRoom
+        data = Room.objects.filter(id=room_id).order_by("id").values('id', "name", "number_of_persons", "is_available", "price", "floor__gender", "floor__block", "floor__block__hostel")
         count = data.count()
-        return JsonResponse({"message": "success", "data":list(data), "count": count})
+        return JsonResponse({"detail": "success","data":list(data), "count": count})
 
     
 """
 The Floor class add a new floor into a block, in a hostel into the database
 """
 class FloorClass(APIView):                      
-    authentication_classes = (IsAuthenticated,)
-    permission_classes = (JWTAuthentication,)
+    # authentication_classes = (IsAuthenticated,)
+    # permission_classes = (JWTAuthentication,)
     def post(self, request, *args, **kwargs):                       # this function adds a new floor to a block
-        if self.request.user.role_id == 1 or self.request.user.role_id ==2:
+        # if self.request.user.role_id == 1 or self.request.user.role_id ==2:
             name = request.data.get('name')
             gender = request.data.get('gender')
             block_id = request.data.get('block_id')
@@ -101,10 +107,10 @@ class FloorClass(APIView):
             }
             floor = Floor.objects.create(**details)
             data = Floor.objects.filter(id=floor.id).values('id', 'name', 'gender', 'block_id')
-            return JsonResponse({'message' : 'Floor added succesfully', 'data': list(data)})
+            return JsonResponse({'message' : 'Floor added successfully', 'data': list(data)})
         
-        else:
-            raise InvalidUser
+        # else:
+        #     raise InvalidUser
 
     def patch(self, request, *args, **kwargs):    # The patch function update all details of the floor in the database
         if self.request.user.role_id == 1 or self.request.user.role_id == 2:
@@ -120,7 +126,7 @@ class FloorClass(APIView):
             floor.gender = gender
             floor.block = block
             floor.save()
-            return JsonResponse({"message": "Floor details changed sucessfully"})
+            return JsonResponse({"message": "Floor details changed successfully"})
         else:
             raise NotAllowed
     
@@ -132,23 +138,27 @@ class FloorClass(APIView):
             raise UnavailableFloor('Unavailable, Floor does not exist')
         if request.method == "DELETE":
             floor.delete()
-            return JsonResponse({'message' : 'Floor deleted sucessfully'})
+            return JsonResponse({'message' : 'Floor deleted successfully'})
         else:
             return JsonResponse({'message' : 'Sorry, Unable to delete Floor'})
 
-    def get(self, request, *args, **kwargs):                 # this function gets all floors in the system
-        data = Floor.objects.values()
+    def get(self, request, *args, **kwargs):
+        floor_id = request.data.get("floor_id")
+        try:
+            Floor.objects.get(id=floor_id)
+        except Floor.DoesNotExist:
+            raise UnavailableFloor
+        data = Floor.objects.filter(id=floor_id).order_by("id").values('id', "name", "gender", "block_id", "block__hostel_id")
         count = data.count()
-        return JsonResponse({"message": "success", "data":list(data), "count": count})
-
+        return JsonResponse({"detail": "success","data":list(data), "count": count})
 """
 The Block class add a new block into a hostel in the database
 """
 class BlockClass(APIView):
-    authentication_classes = (IsAuthenticated,)
-    permission_classes = (JWTAuthentication,)
+    # authentication_classes = (IsAuthenticated,)
+    # permission_classes = (JWTAuthentication,)
     def post(self, request, *args, **kwargs):                            # this function adds a new block to a hostel
-        if self.request.user.role_id == 1 or self.request.user.role_id ==2:
+        # if self.request.user.role_id == 1 or self.request.user.role_id ==2:
             name = request.data.get('name')
             hostel_id = request.data.get('hostel_id')
             try:
@@ -161,9 +171,9 @@ class BlockClass(APIView):
             }
             block = Block.objects.create(**details)
             data = Block.objects.filter(id=block.id).values('id', 'name', 'hostel_id')
-            return JsonResponse({'message' : 'Block added succesfully', 'data': list(data)})
-        else:
-            raise InvalidUser('Invalid user, Not authorised')
+            return JsonResponse({'message' : 'Block added successfully', 'data': list(data)})
+        # else:
+        #     raise InvalidUser('Invalid user, Not authorized')
         
     def patch(self, request, *args, **kwargs):    # The patch function update all details of the floor in the database
         if self.request.user.role_id == 1 or self.request.user.role_id == 2:
@@ -177,7 +187,7 @@ class BlockClass(APIView):
             block.name = name
             block.hostel = hostel
             block.save()
-            return JsonResponse({"message": "Block details changed sucessfully"})
+            return JsonResponse({"message": "Block details changed successfully"})
         else:
             raise NotAllowed
 
@@ -189,22 +199,27 @@ class BlockClass(APIView):
             raise UnavailableBlock('Unavailable, Block does not exist')
         if request.method == "DELETE":
             block.delete()
-            return JsonResponse({'message' : 'Block deleted sucessfully'})
+            return JsonResponse({'message' : 'Block deleted successfully'})
         else:
             return JsonResponse({'message' : 'Sorry, Unable to delete Block'})
 
-    def get(self, request, *args, **kwargs):                 # this function gets all blocks in the system
-        data = Block.objects.values()
+    def get(self, request, *args, **kwargs):
+        block_id = request.data.get("block_id")
+        try:
+            Block.objects.get(id=block_id)
+        except Block.DoesNotExist:
+            raise UnavailableBlock
+        data = Block.objects.filter(id=block_id).order_by("id").values('id', "name", "hostel__name")
         count = data.count()
-        return JsonResponse({"message": "success", "data":list(data), "count": count})
+        return JsonResponse({"detail": "success","data":list(data), "count": count})
 """
 The Hostel class add a new hostel into the database
 """
 class HostelClass(APIView):
-    authentication_classes = (IsAuthenticated,)
-    permission_classes = (JWTAuthentication,)
+    # authentication_classes = (IsAuthenticated,)
+    # permission_classes = (JWTAuthentication,)
     def post(self, request, *args, **kwargs):             # this function adds a new hostel into a system
-        if self.request.user.role_id == 1 or self.request.user.role_id ==2:
+        # if self.request.user.role_id == 1 or self.request.user.role_id ==2:
             name = request.data.get('name')
             hostel_image = request.data.get('hostel_image')
             contact = request.data.get('contact')
@@ -221,9 +236,9 @@ class HostelClass(APIView):
             }
             hostel =Hostel.objects.create(**details)
             data = Hostel.objects.filter(id=hostel.id).values()
-            return JsonResponse({'message' : 'Hostel added succesfully', 'data': list(data)})
-        else:
-            raise InvalidUser('Invalid user, Not authorised')  
+            return JsonResponse({'message' : 'Hostel added successfully', 'data': list(data)})
+        # else:
+        #     raise InvalidUser('Invalid user, Not authorized')  
 
     def patch(self, request, *args, **kwargs):    # The patch function update all details of the hostel in the database
         if self.request.user.role_id == 1 or self.request.user.role_id == 2:
@@ -241,7 +256,7 @@ class HostelClass(APIView):
             hostel.hostel_type = hostel_type
             hostel.block = block
             hostel.save()
-            return JsonResponse({"message": "Hostel details changed sucessfully"})
+            return JsonResponse({"message": "Hostel details changed successfully"})
         else:
             raise NotAllowed
     
@@ -250,17 +265,96 @@ class HostelClass(APIView):
         try:
             hostel = Hostel.objects.get(id=hostel_id)
         except Hostel.DoesNotExist:
-            raise UnavailableHostel('Unavailable, Hostel does not exist')
+            raise UnavailableHostel
         if request.method == "DELETE":
             hostel.delete()
-            return JsonResponse({'message' : 'Hostel deleted sucessfully'})
+            return JsonResponse({'message' : 'Hostel deleted successfully'})
         else:
             return JsonResponse({'message' : 'Sorry, Unable to delete Hostel'})
-
-    def get(self, request, *args, **kwargs):                 # this function gets all hostels in the system
-        page = request.GET.get('page')
-        data = Hostel.objects.values()
-        items = [data[i::5] for i in range(5)]
-        print(data)
+        
+    def get(self, request, *args, **kwargs):
+        hostel_id = request.data.get("hostel_id")
+        try:
+            Hostel.objects.get(id=hostel_id)
+        except Hostel.DoesNotExist:
+            raise UnavailableHostel
+        data = Hostel.objects.filter(id=hostel_id).order_by("id").values('id', "name", "hostel_type", "contact", "hostel_image")
         count = data.count()
-        return JsonResponse({"message": "success","data":items[int(page)], "count": count})
+        return JsonResponse({"detail": "success","data":list(data), "count": count})
+        
+
+"""
+The ListAllHostels class lists all hostels in the system.
+"""
+class ListAllHostels(APIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (JWTAuthentication,)
+
+    def get(self, request, *args, **kwargs):
+        
+        page_number = self.kwargs['page_number']
+
+        response = 'Retrieved all hostels'
+        hostels = Hostel.objects.filter().values('id', 'name', 'hostel_type', 'contact', 'hostel_image')
+
+        data = Paginator(hostels, 5)
+            
+        try:
+           page = data.get_page(page_number)  # returns the desired page object
+           total = data.count  
+           total_pages = data.num_pages  
+        
+           data = list(page)
+
+           return JsonResponse({'status': 'success', 'detail': response, "current_page": page_number,"total_hostels": total, "total_pages": total_pages , "data" :data}, safe=False)
+        except PageNotAnInteger:
+           # if page_number is not an integer then assign the first page
+           page = data.get_page(1)  # returns the desired page object
+           total = data.count  
+           total_pages = data.num_pages  
+
+           data = list(page)
+
+           return JsonResponse({'status': 'success', 'detail': response, "current_page": 1,"total_hostels": total, "total_pages": total_pages , "data" :data}, safe=False)
+        except EmptyPage:
+           # if page is empty then return last page
+           page = data.page(data.num_pages)
+           total = data.count  
+           total_pages = data.num_pages  
+
+           data = list(page)
+
+           return JsonResponse({'status': 'success', 'detail': response, "current_page": data.num_pages,"total_hostels": total, "total_pages": total_pages , "data" :data}, safe=False)
+
+"""
+The GetAllHostelsRooms class gets a hostel in the system and all blocks, floors and rooms related to the hostel.
+"""
+class GetAllHostelsRooms(APIView):
+    def get(self, request, *args, **kwargs):
+        hostel_id = request.data.get("hostel_id")
+        try:
+            Hostel.objects.get(id=hostel_id)
+        except Hostel.DoesNotExist:
+            raise UnavailableHostel
+        data = Room.objects.filter(floor__block__hostel=hostel_id).order_by("id").values('id', "name", "number_of_persons", "is_available", "price", "floor__id", "floor__gender", "floor__block", "floor__block__hostel")
+        count = data.count()
+        return JsonResponse({"detail": "success","data":list(data), "count": count})
+    
+
+"""
+The GetAllRoomsGender class gets all rooms in the hostel according to the gender
+"""
+class GetAllRoomsGender(APIView):
+    authentication_classes = (JWTAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    def get(self, request, *args, **kwargs):
+
+        gender = self.request.user.gender
+        hostel_id = request.data.get("hostel_id")
+        try:
+            Hostel.objects.get(id=hostel_id)
+        except Hostel.DoesNotExist:
+            raise UnavailableHostel
+        data = Room.objects.filter(floor__block__hostel=hostel_id, floor__gender=gender).order_by("id").values('id', "name", "number_of_persons", "is_available", "price", "floor__id", "floor__gender", "floor__block", "floor__block__hostel")
+        count = data.count()
+        return JsonResponse({"detail": "success","data":list(data), "count": count})

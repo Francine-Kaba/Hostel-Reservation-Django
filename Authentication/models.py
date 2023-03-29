@@ -83,6 +83,12 @@ class User(AbstractBaseUser):        # Model for admin
         blank=True,
         null=True
     )
+    gender = models.CharField(
+        _('gender'),
+        max_length=10,
+        blank=True,
+        null=True
+    )
     is_admin = models.BooleanField(
         _('is_admin'),
          default=False

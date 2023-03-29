@@ -1,6 +1,6 @@
 import re
 from django.http import JsonResponse
-
+from Authentication.models import Student
 """
 Password validation regex
 """
@@ -94,3 +94,26 @@ def validate_user_input(email, first_name, last_name, password):
         return JsonResponse({"detail": ", ".join(validation_errors)}, status=433)
     else:
         return None
+    
+"""
+Login Validation regex
+"""
+def validate_login_user_input(email, password):
+    validation_errors = []
+    
+    if not validate_email(email)["status"]:
+        validation_errors.append(validate_email(email)["detail"])
+        
+    if not validate_password(password)["status"]:
+        validation_errors.append(validate_password(password)["detail"])
+    
+    if validation_errors:
+        return JsonResponse({"detail": ", ".join(validation_errors)}, status=433)
+    else:
+        return None
+
+"""
+Signup Validation function
+"""
+# def signup_validation (email, student_id, phone_number, faculty, program):
+   

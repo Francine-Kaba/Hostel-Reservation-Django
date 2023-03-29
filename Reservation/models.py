@@ -25,7 +25,7 @@ class Hostel(models.Model):
     )
     hostel_image = models.ImageField(
         _('hostel image'),
-        max_length=50,
+        upload_to='hostel_images/',
         blank=False,
         null=False
     )

@@ -40,7 +40,7 @@ class WrongToken(APIException):
     
 class InvalidUser(APIException):
     status_codes = 441
-    default_detail = 'Invalid user, Not authorised'
+    default_detail = 'Invalid user, Not authorized'
 
 class UnavailableRoom(APIException):
     status_codes = 442
@@ -57,3 +57,7 @@ class UnavailableBlock(APIException):
 class UnavailableHostel(APIException):
     status_codes = 445
     default_detail = 'Unavailable, Hostel does not exist'
+
+class StudentAlreadyExists(APIException):
+    status_codes = 446
+    default_detail = 'Sorry, Student already exists'
