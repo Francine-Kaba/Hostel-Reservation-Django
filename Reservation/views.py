@@ -89,10 +89,10 @@ class RoomClass(APIView):
 The Floor class add a new floor into a block, in a hostel into the database
 """
 class FloorClass(APIView):                      
-    # authentication_classes = (IsAuthenticated,)
-    # permission_classes = (JWTAuthentication,)
+    authentication_classes = (IsAuthenticated,)
+    permission_classes = (JWTAuthentication,)
     def post(self, request, *args, **kwargs):                       # this function adds a new floor to a block
-        # if self.request.user.role_id == 1 or self.request.user.role_id ==2:
+        if self.request.user.role_id == 1 or self.request.user.role_id ==2:
             name = request.data.get('name')
             gender = request.data.get('gender')
             block_id = request.data.get('block_id')
@@ -109,8 +109,8 @@ class FloorClass(APIView):
             data = Floor.objects.filter(id=floor.id).values('id', 'name', 'gender', 'block_id')
             return JsonResponse({'message' : 'Floor added successfully', 'data': list(data)})
         
-        # else:
-        #     raise InvalidUser
+        else:
+            raise InvalidUser
 
     def patch(self, request, *args, **kwargs):    # The patch function update all details of the floor in the database
         if self.request.user.role_id == 1 or self.request.user.role_id == 2:
@@ -155,10 +155,10 @@ class FloorClass(APIView):
 The Block class add a new block into a hostel in the database
 """
 class BlockClass(APIView):
-    # authentication_classes = (IsAuthenticated,)
-    # permission_classes = (JWTAuthentication,)
+    authentication_classes = (IsAuthenticated,)
+    permission_classes = (JWTAuthentication,)
     def post(self, request, *args, **kwargs):                            # this function adds a new block to a hostel
-        # if self.request.user.role_id == 1 or self.request.user.role_id ==2:
+        if self.request.user.role_id == 1 or self.request.user.role_id ==2:
             name = request.data.get('name')
             hostel_id = request.data.get('hostel_id')
             try:
@@ -216,10 +216,10 @@ class BlockClass(APIView):
 The Hostel class add a new hostel into the database
 """
 class HostelClass(APIView):
-    # authentication_classes = (IsAuthenticated,)
-    # permission_classes = (JWTAuthentication,)
+    authentication_classes = (IsAuthenticated,)
+    permission_classes = (JWTAuthentication,)
     def post(self, request, *args, **kwargs):             # this function adds a new hostel into a system
-        # if self.request.user.role_id == 1 or self.request.user.role_id ==2:
+        if self.request.user.role_id == 1 or self.request.user.role_id ==2:
             name = request.data.get('name')
             hostel_image = request.data.get('hostel_image')
             contact = request.data.get('contact')
@@ -237,8 +237,8 @@ class HostelClass(APIView):
             hostel =Hostel.objects.create(**details)
             data = Hostel.objects.filter(id=hostel.id).values()
             return JsonResponse({'message' : 'Hostel added successfully', 'data': list(data)})
-        # else:
-        #     raise InvalidUser('Invalid user, Not authorized')  
+        else:
+            raise InvalidUser('Invalid user, Not authorized')  
 
     def patch(self, request, *args, **kwargs):    # The patch function update all details of the hostel in the database
         if self.request.user.role_id == 1 or self.request.user.role_id == 2:
