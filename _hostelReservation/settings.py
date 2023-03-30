@@ -81,15 +81,23 @@ AUTH_USER_MODEL = 'Authentication.User'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DATABASE_NAME'),
-        'USER': os.getenv('DATABASE_USER'),
-        'PASSWORD': os.getenv('DATABASE_PASS'),
-        'HOST': os.getenv('DATABASE_HOST')
-    }
+SQLITE_DB_CONF = {
+    "ENGINE": "django.db.backends.sqlite3",
+    "NAME": BASE_DIR / "db.sqlite3",
 }
+
+POSTGRESQL_DB_CONF = {
+    'ENGINE': 'django.db.backends.postgresql',
+    'NAME': os.getenv('DATABASE_NAME'),
+    'USER': os.getenv('DATABASE_USER'),
+    'PASSWORD': os.getenv('DATABASE_PASS'),
+    'HOST': os.getenv('DATABASE_HOST')
+}
+
+DATABASES = {
+    "default": SQLITE_DB_CONF if os.getenv('DJANGO_ENVIRONMENT') == 'development' else POSTGRESQL_DB_CONF
+}
+
 
 
 # Password validation
@@ -127,6 +135,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -137,7 +147,8 @@ REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
-        #'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
+        # 'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
         # 'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ]
+    ],
 }
+

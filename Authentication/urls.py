@@ -1,5 +1,5 @@
 from django.urls import path, include
-from Authentication.views import AddStudent, AddFaculty, AddAdmin, AddUserRoles, Login, AddPosition, AddProgram, GetUserRole
+from Authentication.views import (AddStudent, AddFaculty, AddAdmin, AddUserRoles, Login, AddPosition, AddProgram, GetUserRole, GetAllStudents)
 
 urlpatterns = [
     path('add-user-role/', AddUserRoles.as_view(), name='add_user_roles'),
@@ -9,5 +9,6 @@ urlpatterns = [
     path('add-program/', AddProgram.as_view(), name='add_program'),
     path('signup/', AddStudent.as_view(), name='signup'), 
     path('login/', Login.as_view(), name="Login"), 
-    path('get-user-role/', GetUserRole.as_view(), name="get-user-role")  
+    path('get-user-role/', GetUserRole.as_view(), name="get-user-role"), 
+    path('get-all-students/', GetAllStudents.as_view(), name="get-all-students")   
 ]

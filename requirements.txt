@@ -3,6 +3,7 @@ coverage==6.5.0
 Django==4.1.4
 djangorestframework==3.14.0
 djangorestframework-simplejwt==5.2.2
+Pillow==9.4.0
 psycopg2-binary==2.9.5
 PyJWT==2.6.0
 python-dotenv==0.21.0
