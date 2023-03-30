@@ -14,18 +14,22 @@ The Room class add a new room to a floor, into a block in a hostel into the data
 class RoomClass(APIView):
     authentication_classes = (JWTAuthentication,)
     permission_classes = (IsAuthenticated,)
-    def post(self, request, *args, **kwargs):             # this function adds a new room to a floor in the hostel
-        if self.request.user.role_id == 1 or self.request.user.role_id == 2:       # this if statement ensures that only a super admin and admin can add a room
+    # this function adds a new room to a floor in the hostel
+    def post(self, request, *args, **kwargs):             
+          # this if statement ensures that only a super admin and admin can add a room
+        if self.request.user.role_id == 1 or self.request.user.role_id == 2:     
             name = request.data.get('name')
             number_of_persons = request.data.get('number_of_persons')
             is_available = request.data.get('is_available')
             price = request.data.get('price')
             floor_id = request.data.get('floor_id')
+             # this try and catch ensures that we don't have the same room name on a particular floor
             try:
-                Room.objects.get(name=name,floor_id=floor_id)      # this try and catch ensures that we don't have the same room name on a particular floor
+                Room.objects.get(name=name,floor_id=floor_id)     
                 return JsonResponse({"message" : "Room name already exits, please change it"})
             except Room.DoesNotExist:
-                try:                                 # this try and catch ensures that the floor the room is being placed exists
+                # this try and catch ensures that the floor the room is being placed exists
+                try:                                 
                  Floor.objects.get(id=floor_id)            
                 except Floor.DoesNotExist:
                     raise UnavailableFloor('Unavailable, Floor does not exist')
@@ -36,20 +40,24 @@ class RoomClass(APIView):
                 'price' : price,
                 'floor_id' : floor_id
             }
-            room = Room.objects.create(**details)                  # this creates a room
+            # this creates a room
+            room = Room.objects.create(**details)                  
             data = Room.objects.filter(id=room.id).values()
             return JsonResponse({'message' : 'Room added successfully', 'data': list(data)})
 
         else:
             raise InvalidUser
-    def patch(self, request, *args, **kwargs):    # The patch function update all details of the room in the database
+        
+    # The patch function update all details of the room in the database
+    def patch(self, request, *args, **kwargs):    
         if self.request.user.role_id == 1 or self.request.user.role_id == 2:
             room_id = request.data.get('room_id')
             number_of_persons = request.data.get('number_of_persons')
             is_available = request.data.get('is_available')
             price = request.data.get('price')
             floor = request.data.get('floor_id')
-            try:                                 # this try ensures that the room being edited exists on the database
+            # this try ensures that the room being edited exists on the database
+            try:                                 
                 room = Room.objects.get(id=room_id)
             except Room.DoesNotExist:
                 raise UnavailableRoom
@@ -61,8 +69,9 @@ class RoomClass(APIView):
             return JsonResponse({"message": "Room details changed successfully"})
         else:
             raise NotAllowed
-
-    def delete(self, request, *args, **kwargs):           # The Delete function deletes a new room from the database
+        
+    # The Delete function deletes a new room from the database
+    def delete(self, request, *args, **kwargs):           
         room_id = request.data.get('room_id')
         try:
             room = Room.objects.get(id=room_id)
@@ -73,8 +82,9 @@ class RoomClass(APIView):
             return JsonResponse({'message' : 'Room deleted successfully'})
         else:
             return JsonResponse({'message' : 'Sorry, Unable to delete Room'})
-
-    def get(self, request, *args, **kwargs):             # The get function gets all the details of a specific room
+        
+     # The get function gets all the details of a specific room
+    def get(self, request, *args, **kwargs):            
         room_id = request.data.get("room_id")
         try:
             Room.objects.get(id=room_id)
@@ -91,12 +101,15 @@ The Floor class add a new floor into a block, in a hostel into the database
 class FloorClass(APIView):                      
     authentication_classes = (IsAuthenticated,)
     permission_classes = (JWTAuthentication,)
-    def post(self, request, *args, **kwargs):                       # this function adds a new floor to a block
-        if self.request.user.role_id == 1 or self.request.user.role_id ==2:         # this if ensure only and admin or a super admin can add a floor
+    # this function adds a new floor to a block
+    def post(self, request, *args, **kwargs):           
+        # this if ensure only and admin or a super admin can add a floor            
+        if self.request.user.role_id == 1 or self.request.user.role_id ==2:         
             name = request.data.get('name')
             gender = request.data.get('gender')
             block_id = request.data.get('block_id')
-            try:                      # this try ensures that the block that the floor is being saved on exists
+            # this try ensures that the block that the floor is being saved on exists
+            try:                      
                 Block.objects.get(id=block_id)
             except Block.DoesNotExist:
                 raise UnavailableBlock('Unavailable, Block does not exist')
@@ -105,20 +118,24 @@ class FloorClass(APIView):
                 'gender' : gender,
                 'block_id' : block_id
             }
-            floor = Floor.objects.create(**details)      # this saves the floor on a block
+            # this saves the floor on a block
+            floor = Floor.objects.create(**details)      
             data = Floor.objects.filter(id=floor.id).values('id', 'name', 'gender', 'block_id')
             return JsonResponse({'message' : 'Floor added successfully', 'data': list(data)})
         
         else:
             raise InvalidUser
-
-    def patch(self, request, *args, **kwargs):    # The patch function update all details of the floor in the database
-        if self.request.user.role_id == 1 or self.request.user.role_id == 2:         # this if ensure only and admin or a super admin can edit a floor
+        
+    # The patch function update all details of the floor in the database
+    def patch(self, request, *args, **kwargs):    
+        # this if ensure only and admin or a super admin can edit a floor
+        if self.request.user.role_id == 1 or self.request.user.role_id == 2:         
             floor_id = request.data.get('floor_id')
             name = request.data.get('name')
             gender = request.data.get('gender')
             block = request.data.get('block')
-            try:                      # this try ensures that the  floor is being edited exists
+            # this try ensures that the  floor is being edited exists
+            try:                      
                 floor = Floor.objects.get(id=floor_id)
             except Floor.DoesNotExist:
                 raise UnavailableFloor
@@ -130,9 +147,11 @@ class FloorClass(APIView):
         else:
             raise NotAllowed
     
-    def delete(self, request, *args, **kwargs):           # The Delete function deletes a new floor from the database
+     # The Delete function deletes a new floor from the database
+    def delete(self, request, *args, **kwargs):          
         floor_id = request.data.get('floor_id')
-        try:                      # this try ensures that the  floor is being deleted exists
+        # this try ensures that the  floor is being deleted exists
+        try:                      
             floor = Floor.objects.get(id=floor_id)
         except Room.DoesNotExist:
             raise UnavailableFloor('Unavailable, Floor does not exist')
@@ -142,7 +161,8 @@ class FloorClass(APIView):
         else:
             return JsonResponse({'message' : 'Sorry, Unable to delete Floor'})
 
-    def get(self, request, *args, **kwargs):             # The get function gets all details of a specific floor
+     # The get function gets all details of a specific floor
+    def get(self, request, *args, **kwargs):            
         floor_id = request.data.get("floor_id")
         try:
             Floor.objects.get(id=floor_id)
@@ -157,11 +177,15 @@ The Block class add a new block into a hostel in the database
 class BlockClass(APIView):
     authentication_classes = (IsAuthenticated,)
     permission_classes = (JWTAuthentication,)
-    def post(self, request, *args, **kwargs):                            # this function adds a new block to a hostel
-        if self.request.user.role_id == 1 or self.request.user.role_id ==2:         # this if ensure only and admin or a super admin can add  a block
+
+    # this function adds a new block to a hostel
+    def post(self, request, *args, **kwargs):   
+        # this if ensure only and admin or a super admin can add  a block                         
+        if self.request.user.role_id == 1 or self.request.user.role_id ==2:         
             name = request.data.get('name')
             hostel_id = request.data.get('hostel_id')
-            try:                      # this try ensures that the block that the hostel is being saved on exists
+            # this try ensures that the block that the hostel is being saved on exists
+            try:                      
                 Hostel.objects.get(id=hostel_id)
             except Hostel.DoesNotExist:
                 raise UnavailableHostel('Unavailable, Hostel does not exist')
@@ -174,13 +198,16 @@ class BlockClass(APIView):
             return JsonResponse({'message' : 'Block added successfully', 'data': list(data)})
         else:
             raise InvalidUser('Invalid user, Not authorized')
-        
-    def patch(self, request, *args, **kwargs):    # The patch function update all details of the floor in the database
-        if self.request.user.role_id == 1 or self.request.user.role_id == 2:         # this if ensure only and admin or a super admin can edit a block
+    
+    # The patch function update all details of the floor in the database
+    def patch(self, request, *args, **kwargs):    
+        # this if ensure only and admin or a super admin can edit a block
+        if self.request.user.role_id == 1 or self.request.user.role_id == 2:         
             block_id = request.data.get('block_id')
             name = request.data.get('name')
             hostel = request.data.get('hostel')
-            try:                                  # this try ensures that the  floor is being edited exists
+            # this try ensures that the  floor is being edited exists
+            try:                                  
                 block = Block.objects.get(id=block_id)
             except Block.DoesNotExist:
                 raise UnavailableBlock
@@ -191,9 +218,11 @@ class BlockClass(APIView):
         else:
             raise NotAllowed
 
-    def delete(self, request, *args, **kwargs):          # The Delete function deletes a new block from the hostel in the database
+    # The Delete function deletes a new block from the hostel in the database
+    def delete(self, request, *args, **kwargs):          
         block_id = request.data.get('block_id')
-        try:                      # this try ensures that the  block is being deleted exists
+        # this try ensures that the  block is being deleted exists
+        try:                      
             block = Block.objects.get(id=block_id)
         except Block.DoesNotExist:
             raise UnavailableBlock('Unavailable, Block does not exist')
@@ -203,7 +232,8 @@ class BlockClass(APIView):
         else:
             return JsonResponse({'message' : 'Sorry, Unable to delete Block'})
 
-    def get(self, request, *args, **kwargs):                 #The get function gets all details of a specific block 
+    #The get function gets all details of a specific block
+    def get(self, request, *args, **kwargs):                  
         block_id = request.data.get("block_id")
         try:
             Block.objects.get(id=block_id)
@@ -218,13 +248,17 @@ The Hostel class add a new hostel into the database
 class HostelClass(APIView):
     authentication_classes = (IsAuthenticated,)
     permission_classes = (JWTAuthentication,)
-    def post(self, request, *args, **kwargs):             # this function adds a new hostel into a system
-        if self.request.user.role_id == 1 or self.request.user.role_id ==2:         # this if ensure only and admin or a super admin can add  a new hostel into the system
+
+    # this function adds a new hostel into a system
+    def post(self, request, *args, **kwargs):   
+        # this if ensure only and admin or a super admin can add  a new hostel into the system          
+        if self.request.user.role_id == 1 or self.request.user.role_id ==2:         
             name = request.data.get('name')
             hostel_image = request.data.get('hostel_image')
             contact = request.data.get('contact')
             hostel_type = request.data.get('hostel_type')
-            try:                      # this try ensures that the hostel name that is being saved does not already exists
+            # this try ensures that the hostel name that is being saved does not already exists
+            try:                      
                 Hostel.objects.get(name=name)
                 return JsonResponse({"message" : "Hostel name already exists, please change the name"})
             except Hostel.DoesNotExist:
@@ -240,14 +274,17 @@ class HostelClass(APIView):
         else:
             raise InvalidUser('Invalid user, Not authorized')  
 
-    def patch(self, request, *args, **kwargs):    # The patch function update all details of the hostel in the database
-        if self.request.user.role_id == 1 or self.request.user.role_id == 2:         # this if ensure only and admin or a super admin can edit  a  hostel in the system
+    # The patch function update all details of the hostel in the database
+    def patch(self, request, *args, **kwargs):    
+        # this if ensure only and admin or a super admin can edit  a  hostel in the system
+        if self.request.user.role_id == 1 or self.request.user.role_id == 2:         
             hostel_id = request.data.get('hostel_id')
             name = request.data.get('name')
             hostel_image = request.data.get('hostel_image')
             hostel_type = request.data.get('hostel_type')
             block = request.data.get('block')
-            try:                                  # this try ensures that the  hostel is being edited exists
+              # this try ensures that the  hostel is being edited exists
+            try:                                
                 hostel = Hostel.objects.get(id=hostel_id)
             except Hostel.DoesNotExist:
                 raise UnavailableHostel
@@ -259,10 +296,12 @@ class HostelClass(APIView):
             return JsonResponse({"message": "Hostel details changed successfully"})
         else:
             raise NotAllowed
-    
-    def delete(self, request, *args, **kwargs):         # The DeleteHostel class deletes a new room from the database
+        
+    # The DeleteHostel class deletes a new room from the database
+    def delete(self, request, *args, **kwargs):         
         hostel_id = request.data.get('hostel_id')
-        try:                      # this try ensures that the  hostel is being deleted exists
+        # this try ensures that the  hostel is being deleted exists
+        try:                      
             hostel = Hostel.objects.get(id=hostel_id)
         except Hostel.DoesNotExist:
             raise UnavailableHostel
@@ -272,7 +311,8 @@ class HostelClass(APIView):
         else:
             return JsonResponse({'message' : 'Sorry, Unable to delete Hostel'})
         
-    def get(self, request, *args, **kwargs):                     # The get function gets all details of a specific hostel
+    # The get function gets all details of a specific hostel
+    def get(self, request, *args, **kwargs):                     
         hostel_id = request.data.get("hostel_id")
         try:
             Hostel.objects.get(id=hostel_id)
@@ -298,9 +338,10 @@ class ListAllHostels(APIView):
         hostels = Hostel.objects.filter().values('id', 'name', 'hostel_type', 'contact', 'hostel_image')
 
         data = Paginator(hostels, 5)
-            
-        try:                   # this try gets the page number
-           page = data.get_page(page_number)  # returns the desired page object
+        # this try gets the page number
+        try:         
+           # returns the desired page object          
+           page = data.get_page(page_number)  
            total = data.count  
            total_pages = data.num_pages  
         
@@ -332,7 +373,8 @@ The GetAllHostelsRooms class gets a hostel in the system and all blocks, floors 
 class GetAllHostelsRooms(APIView):
     def get(self, request, *args, **kwargs):
         hostel_id = request.data.get("hostel_id")
-        try:                      # this try ensures that the  hostel exists                     
+         # this try ensures that the  hostel exists 
+        try:                                         
             Hostel.objects.get(id=hostel_id)
         except Hostel.DoesNotExist:
             raise UnavailableHostel
@@ -351,7 +393,8 @@ class GetAllRoomsGender(APIView):
 
         gender = self.request.user.gender
         hostel_id = request.data.get("hostel_id")
-        try:                       # this try ensures that the  hostel  exists
+        # this try ensures that the  hostel  exists
+        try:                       
             Hostel.objects.get(id=hostel_id)
         except Hostel.DoesNotExist:
             raise UnavailableHostel
