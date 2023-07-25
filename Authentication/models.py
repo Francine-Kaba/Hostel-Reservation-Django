@@ -1,51 +1,60 @@
 from django.db import models
-from django.utils.translation import gettext_lazy as _  
+from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.base_user import AbstractBaseUser
 from .managers import UserManager
 # Create your models here.
 
-class UserRole(models.Model):     # Model for user role, ie. admin or student 
+
+class UserRole(models.Model):     # Model for user role, ie. admin or student
     name = models.CharField(
         'Name',
         max_length=30,
         blank=False,
         null=False
     )
+
     def __str__(self):
         return self.name
+
 
 class Position(models.Model):       # Model for position
     name = models.CharField(
-        "Name of position", 
-        max_length=300, 
+        "Name of position",
+        max_length=300,
         default='Student'
     )
+
     def __str__(self):
         return self.name
 
+
 class Faculty(models.Model):        # Model for faculty
     name = models.CharField(
-        "Name of faculty", 
-        max_length=300, 
-        blank=False, 
+        "Name of faculty",
+        max_length=300,
+        blank=False,
         null=False
     )
+
     def __str__(self):
         return self.name
 
     class Meta:
         verbose_name_plural = "Faculties"
 
+
 class Program(models.Model):       # Model for program
     name = models.CharField(
-        "Name of program", 
-        max_length=300, 
-        blank=False, 
+        "Name of program",
+        max_length=300,
+        blank=False,
         null=False
     )
+
     def __str__(self):
         return self.name
-        
+
+
 class User(AbstractBaseUser):        # Model for admin
     first_name = models.CharField(
         _('first name'),
@@ -82,7 +91,8 @@ class User(AbstractBaseUser):        # Model for admin
         max_length=20,
         unique=True,
         blank=False,
-        null=False
+        null=False,
+        default="0000000000"
     )
     gender = models.CharField(
         _('gender'),
@@ -92,16 +102,17 @@ class User(AbstractBaseUser):        # Model for admin
     )
     is_admin = models.BooleanField(
         _('is_admin'),
-         default=False
+        default=False
     )
     is_superuser = models.BooleanField(
         _('is_superuser'),
-         default=False
+        default=False
     )
     is_staff = models.BooleanField(
         _('is_staff'),
-         default=False
+        default=False
     )
+
     def __str__(self):
         return self.email
 
@@ -123,13 +134,12 @@ class Student(models.Model):    # Model for adding a new student
     faculty = models.ForeignKey(
        on_delete=models.CASCADE,
        to="faculty",
-       verbose_name = "Faculties"
+       verbose_name="Faculties"
     )
     program = models.ForeignKey(
        on_delete=models.CASCADE,
        to="program"
     )
+
     def __str__(self):
         return self.student_id
-
-   
