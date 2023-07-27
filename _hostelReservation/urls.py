@@ -7,7 +7,8 @@ from django.conf import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('Authentication.urls')),
-    path('reserv/', include('Reservation.urls')),
+    path('reserve/', include('Reservation.urls')),
+    path('book/', include('Booking.urls')),
 ]
 
 static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

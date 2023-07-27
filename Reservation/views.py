@@ -8,29 +8,31 @@ from helpers.status_codes import UnavailableRoom, UnavailableFloor, UnavailableB
 
 # Create your views here.
 
-"""
-The Room class add a new room to a floor, into a block in a hostel into the database
-"""
+
 class RoomClass(APIView):
+    """
+    The Room class add a new room to a floor, into a block in a hostel into the database
+    """
     authentication_classes = (JWTAuthentication,)
     permission_classes = (IsAuthenticated,)
+
     # this function adds a new room to a floor in the hostel
     def post(self, request, *args, **kwargs):             
-          # this if statement ensures that only a super admin and admin can add a room
-        if self.request.user.role_id == 1 or self.request.user.role_id == 2:     
+        # this if statement ensures that only a super admin and admin can add a room
+        if self.request.user.role_id == 1 or self.request.user.role_id == 2:    
             name = request.data.get('name')
             number_of_persons = request.data.get('number_of_persons')
             is_available = request.data.get('is_available')
             price = request.data.get('price')
             floor_id = request.data.get('floor_id')
-             # this try and catch ensures that we don't have the same room name on a particular floor
+            # this try and catch ensures that we don't have the same room name on a particular floor
             try:
                 Room.objects.get(name=name,floor_id=floor_id)     
                 return JsonResponse({"message" : "Room name already exits, please change it"})
             except Room.DoesNotExist:
                 # this try and catch ensures that the floor the room is being placed exists
                 try:                                 
-                 Floor.objects.get(id=floor_id)            
+                    Floor.objects.get(id=floor_id)            
                 except Floor.DoesNotExist:
                     raise UnavailableFloor('Unavailable, Floor does not exist')
             details = {
@@ -92,15 +94,16 @@ class RoomClass(APIView):
             raise UnavailableRoom
         data = Room.objects.filter(id=room_id).order_by("id").values('id', "name", "number_of_persons", "is_available", "price", "floor__gender", "floor__block", "floor__block__hostel")
         count = data.count()
-        return JsonResponse({"detail": "success","data":list(data), "count": count})
+        return JsonResponse({"detail": "success", "data": list(data), "count": count})
 
     
-"""
-The Floor class add a new floor into a block, in a hostel into the database
-"""
 class FloorClass(APIView):                      
-    authentication_classes = (IsAuthenticated,)
-    permission_classes = (JWTAuthentication,)
+    """
+    The Floor class add a new floor into a block, in a hostel into the database
+    """
+    authentication_classes = (JWTAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    
     # this function adds a new floor to a block
     def post(self, request, *args, **kwargs):           
         # this if ensure only and admin or a super admin can add a floor            
@@ -171,17 +174,19 @@ class FloorClass(APIView):
         data = Floor.objects.filter(id=floor_id).order_by("id").values('id', "name", "gender", "block_id", "block__hostel_id")
         count = data.count()
         return JsonResponse({"detail": "success","data":list(data), "count": count})
-"""
-The Block class add a new block into a hostel in the database
-"""
+
+
 class BlockClass(APIView):
-    authentication_classes = (IsAuthenticated,)
-    permission_classes = (JWTAuthentication,)
+    """
+    The Block class add a new block into a hostel in the database
+    """
+    authentication_classes = (JWTAuthentication,)
+    permission_classes = (IsAuthenticated,)
 
     # this function adds a new block to a hostel
     def post(self, request, *args, **kwargs):   
         # this if ensure only and admin or a super admin can add  a block                         
-        if self.request.user.role_id == 1 or self.request.user.role_id ==2:         
+        if self.request.user.role_id == 1 or self.request.user.role_id ==2:        
             name = request.data.get('name')
             hostel_id = request.data.get('hostel_id')
             # this try ensures that the block that the hostel is being saved on exists
@@ -246,13 +251,13 @@ class BlockClass(APIView):
 The Hostel class add a new hostel into the database
 """
 class HostelClass(APIView):
-    authentication_classes = (IsAuthenticated,)
-    permission_classes = (JWTAuthentication,)
+    authentication_classes = (JWTAuthentication,)
+    permission_classes = (IsAuthenticated,)
 
     # this function adds a new hostel into a system
     def post(self, request, *args, **kwargs):   
-        # this if ensure only and admin or a super admin can add  a new hostel into the system          
         if self.request.user.role_id == 1 or self.request.user.role_id ==2:         
+        # this if ensure only and admin or a super admin can add  a new hostel into the system          
             name = request.data.get('name')
             hostel_image = request.data.get('hostel_image')
             contact = request.data.get('contact')
@@ -281,8 +286,8 @@ class HostelClass(APIView):
             hostel_id = request.data.get('hostel_id')
             name = request.data.get('name')
             hostel_image = request.data.get('hostel_image')
+            contact = request.data.get('contact')
             hostel_type = request.data.get('hostel_type')
-            block = request.data.get('block')
               # this try ensures that the  hostel is being edited exists
             try:                                
                 hostel = Hostel.objects.get(id=hostel_id)
@@ -290,8 +295,8 @@ class HostelClass(APIView):
                 raise UnavailableHostel
             hostel.name = name
             hostel.hostel_image = hostel_image
+            hostel.contact = contact
             hostel.hostel_type = hostel_type
-            hostel.block = block
             hostel.save()
             return JsonResponse({"message": "Hostel details changed successfully"})
         else:

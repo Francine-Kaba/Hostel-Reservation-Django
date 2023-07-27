@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'Authentication',
     'Reservation',
+    'Booking',
     'coverage',      #for unit testing
     'rest_framework',
 ]
